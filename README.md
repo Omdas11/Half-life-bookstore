@@ -4,30 +4,22 @@ Minimalist, mobile-first bookstore built with Next.js App Router.
 
 ## Stack
 
-- Next.js 14+ (App Router)
+- Next.js 16 (App Router)
 - TypeScript
 - Tailwind CSS
-- Supabase (`books` table)
+- Supabase (`books`, `affiliate_products`, storage bucket `book-images`)
 
-## Supabase setup
+## Features
 
-Copy `.env.example` to `.env.local` and add:
+- Public marketplace page for used books and affiliate products
+- Protected `/admin` dashboard with Supabase email/password sign-in
+- Book inventory management with stock toggle and Supabase Storage image uploads
+- Affiliate product management with title, affiliate URL, and direct image URL input
+- Local Tiempos typography via `next/font/local`
 
-```bash
-NEXT_PUBLIC_SUPABASE_URL=your-project-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-```
+## Setup
 
-Expected `books` table fields:
-
-- `id`
-- `title`
-- `author`
-- `price`
-- `condition`
-- `image_url`
-- `is_affiliate`
-- `link`
+See [`setup.MD`](./setup.MD) for complete environment variables, SQL bootstrap script, and automation command.
 
 ## Run locally
 
