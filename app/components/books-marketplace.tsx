@@ -16,7 +16,7 @@ function getUsedBookMessage(book: Book) {
 
 export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [brokenImageIds, setBrokenImageIds] = useState<number[]>([]);
+  const [brokenImageIds, setBrokenImageIds] = useState<string[]>([]);
 
   const filteredBooks = useMemo(
     () =>

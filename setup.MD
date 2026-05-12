@@ -5,8 +5,8 @@
 Create `.env.local` with:
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=your-project-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-public-jwt-from-project-api-settings>
 ```
 
 For automation script execution, also export:

@@ -9,6 +9,13 @@ import {
 } from "@/lib/supabase";
 
 const placeholderImage = "/book-placeholder.svg";
+const invalidFileChars = /[^a-zA-Z0-9._-]/g;
+
+function sanitizeFileName(fileName: string) {
+  const cleanName = fileName.split("/").pop()?.split("\\").pop() ?? "book-image";
+  const normalized = cleanName.replaceAll(" ", "-").replace(invalidFileChars, "");
+  return normalized || `book-image-${Date.now()}`;
+}
 
 export default function AdminDashboard() {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
@@ -155,7 +162,8 @@ export default function AdminDashboard() {
       let uploadedImageUrl = placeholderImage;
 
       if (bookImage) {
-        const filePath = `${session.user.id}/${Date.now()}-${bookImage.name.replaceAll(" ", "-")}`;
+        const safeFileName = sanitizeFileName(bookImage.name);
+        const filePath = `${session.user.id}/${Date.now()}-${safeFileName}`;
         const { error: uploadError } = await supabase.storage
           .from("book-images")
           .upload(filePath, bookImage, {

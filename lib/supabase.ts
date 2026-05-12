@@ -18,7 +18,7 @@ export type AffiliateProduct = {
 };
 
 export type Book = {
-  id: number;
+  id: string;
   title: string;
   author: string;
   price: number | null;
@@ -33,7 +33,7 @@ const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 const fallbackBooks: Book[] = [
   {
-    id: 1,
+    id: "book-1",
     title: "Engineering Mathematics",
     author: "B. S. Grewal",
     price: 399,
@@ -43,7 +43,7 @@ const fallbackBooks: Book[] = [
     link: "",
   },
   {
-    id: 2,
+    id: "affiliate-2",
     title: "Introduction to Algorithms",
     author: "Affiliate",
     price: null,
@@ -100,7 +100,7 @@ export async function getBooks(): Promise<Book[]> {
   }
 
   const inventoryBooks: Book[] = ((inventoryData as InventoryBook[] | null) ?? []).map((book) => ({
-    id: book.id,
+    id: `book-${book.id}`,
     title: book.title,
     author: book.author,
     price: book.price,
@@ -111,7 +111,7 @@ export async function getBooks(): Promise<Book[]> {
   }));
 
   const affiliateBooks: Book[] = ((affiliateData as AffiliateProduct[] | null) ?? []).map((product) => ({
-    id: product.id + 100000,
+    id: `affiliate-${product.id}`,
     title: product.title,
     author: "Affiliate",
     price: null,
