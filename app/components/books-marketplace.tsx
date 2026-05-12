@@ -28,13 +28,21 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-      <header className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 sm:text-3xl">
-          Half-life Bookstore
-        </h1>
-        <p className="mt-1 text-sm text-zinc-600 sm:text-base">
-          Buy affordable used academic books or explore new affiliate options.
-        </p>
+      <header className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 sm:text-3xl">
+            Half-life Bookstore
+          </h1>
+          <p className="mt-1 text-sm text-zinc-600 sm:text-base">
+            Buy affordable used academic books or explore new affiliate options.
+          </p>
+        </div>
+        <a
+          href="/admin"
+          className="inline-flex rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100"
+        >
+          Admin
+        </a>
       </header>
 
       <label className="mb-6 block">
@@ -80,14 +88,18 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
               />
               <div className="space-y-2 p-4">
                 <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-                  {isUsed ? "Used" : "New"}
+                  {isUsed ? "Used" : "Affiliate"}
                 </p>
                 <h2 className="line-clamp-2 text-lg font-semibold text-zinc-900">
                   {book.title}
                 </h2>
                 <p className="text-sm text-zinc-600">{book.author}</p>
                 <p className="text-sm text-zinc-700">Condition: {book.condition}</p>
-                <p className="text-base font-semibold text-zinc-900">₹{book.price}</p>
+                {book.price !== null ? (
+                  <p className="text-base font-semibold text-zinc-900">₹{book.price}</p>
+                ) : (
+                  <p className="text-base font-semibold text-zinc-900">Visit partner store</p>
+                )}
                 <a
                   href={actionHref}
                   target="_blank"
