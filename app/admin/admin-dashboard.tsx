@@ -257,6 +257,9 @@ export default function AdminDashboard() {
     if (!supabase) {
       return;
     }
+    if (!window.confirm("Delete this book permanently?")) {
+      return;
+    }
     const { error } = await supabase.from("books").delete().eq("id", bookId);
     if (error) {
       setDashboardError(error.message);
@@ -305,6 +308,9 @@ export default function AdminDashboard() {
 
   const handleDeleteAffiliate = async (productId: number) => {
     if (!supabase) {
+      return;
+    }
+    if (!window.confirm("Delete this affiliate product permanently?")) {
       return;
     }
     const { error } = await supabase.from("affiliate_products").delete().eq("id", productId);
@@ -448,6 +454,9 @@ export default function AdminDashboard() {
               onChange={(event) => setBookImages(event.target.files)}
               className="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2"
             />
+            <span className="mt-1 block text-xs text-zinc-500">
+              {bookImages?.length ?? 0} file(s) selected
+            </span>
           </label>
           <label className="block text-sm font-medium text-zinc-700">
             External image URLs (comma or newline separated)
@@ -631,8 +640,11 @@ export default function AdminDashboard() {
                   </div>
                 </div>
                 <div className="mt-3 space-y-1">
-                  {(invoice.items ?? []).map((item, index) => (
-                    <p key={`${invoice.id}-${index}`} className="text-sm text-zinc-700">
+                  {(invoice.items ?? []).map((item) => (
+                    <p
+                      key={`${invoice.id}-${item.product_type}-${item.product_id}`}
+                      className="text-sm text-zinc-700"
+                    >
                       {item.title} × {item.quantity} (₹{item.unit_price})
                     </p>
                   ))}

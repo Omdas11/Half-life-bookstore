@@ -14,7 +14,6 @@ create table if not exists public.books (
   price numeric(10,2) not null check (price >= 0),
   condition text not null,
   image_url text not null,
-  image_urls jsonb not null default '[]'::jsonb,
   in_stock boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -25,7 +24,6 @@ create table if not exists public.affiliate_products (
   title text not null,
   affiliate_url text not null,
   image_url text not null,
-  image_urls jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -263,11 +261,11 @@ using (
 
 update public.books
 set image_urls = jsonb_build_array(image_url)
-where image_urls = '[]'::jsonb or image_urls is null;
+where image_url is not null and (image_urls is null or jsonb_array_length(image_urls) = 0);
 
 update public.affiliate_products
 set image_urls = jsonb_build_array(image_url)
-where image_urls = '[]'::jsonb or image_urls is null;
+where image_url is not null and (image_urls is null or jsonb_array_length(image_urls) = 0);
 
 insert into storage.buckets (id, name, public)
 values ('book-images', 'book-images', true)

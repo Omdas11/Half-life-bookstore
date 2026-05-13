@@ -39,6 +39,7 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
       cartItems.reduce((total, item) => total + (item.book.price ?? 0) * item.quantity, 0),
     [cartItems]
   );
+  const formattedCartTotal = useMemo(() => cartTotal.toFixed(2), [cartTotal]);
 
   const handleAddToCart = (book: Book) => {
     if (book.price === null || book.is_affiliate) {
@@ -169,7 +170,7 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
                 <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
                   {isUsed ? "Used" : "Affiliate"}
                 </p>
-                <h2 className="text-lg font-semibold text-zinc-900">{book.title}</h2>
+                <h2 className="line-clamp-2 text-lg font-semibold text-zinc-900">{book.title}</h2>
                 <p className="text-sm text-zinc-600">{book.author}</p>
                 <p className="text-sm text-zinc-700">Condition: {book.condition}</p>
                 {book.image_urls.length > 1 ? (
@@ -250,7 +251,7 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
                   >
                     -
                   </button>
-                  <span className="min-w-8 text-center text-sm">{item.quantity}</span>
+                  <span className="min-w-[2rem] text-center text-sm">{item.quantity}</span>
                   <button
                     type="button"
                     onClick={() => handleUpdateQuantity(item.book.id, item.quantity + 1)}
@@ -263,7 +264,7 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
             ))
           )}
         </div>
-        <p className="mt-4 text-base font-semibold text-zinc-900">Total: ₹{cartTotal.toFixed(2)}</p>
+        <p className="mt-4 text-base font-semibold text-zinc-900">Total: ₹{formattedCartTotal}</p>
         <form onSubmit={handleCheckout} className="mt-4 space-y-3">
           <input
             required
@@ -277,10 +278,13 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
             value={customerPhone}
             onChange={(event) => setCustomerPhone(event.target.value)}
             placeholder="Phone number"
+            pattern="^[0-9+\-\s]{8,15}$"
+            title="Enter a valid phone number (8 to 15 digits, spaces, + or -)."
             className="w-full rounded-xl border border-zinc-300 px-3 py-2"
           />
           <textarea
             required
+            minLength={10}
             value={customerAddress}
             onChange={(event) => setCustomerAddress(event.target.value)}
             placeholder="Delivery address"
