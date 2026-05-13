@@ -1,5 +1,6 @@
 import localFont from "next/font/local";
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const tiempos = localFont({
@@ -42,7 +43,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`h-full antialiased ${tiempos.variable}`}>
-      <body className="min-h-full bg-zinc-50 text-zinc-900">{children}</body>
+      <body className="min-h-full bg-zinc-50 text-zinc-900">
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }
