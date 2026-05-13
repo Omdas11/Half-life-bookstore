@@ -1,6 +1,7 @@
 import localFont from "next/font/local";
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
+import SiteChrome from "@/app/components/site-chrome";
 import "./globals.css";
 
 const tiempos = localFont({
@@ -43,8 +44,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`h-full antialiased ${tiempos.variable}`}>
-      <body className="min-h-full bg-zinc-50 text-zinc-900">
-        {children}
+      <body className="min-h-full">
+        <SiteChrome>{children}</SiteChrome>
         <Analytics />
       </body>
     </html>

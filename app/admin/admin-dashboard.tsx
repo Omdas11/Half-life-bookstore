@@ -6,6 +6,7 @@ import {
   getSupabaseBrowserClient,
   type AffiliateProduct,
   type InventoryBook,
+  type InvoiceRecord,
 } from "@/lib/supabase";
 
 const placeholderImage = "/book-placeholder.svg";
@@ -15,6 +16,13 @@ function sanitizeFileName(fileName: string) {
   const cleanName = fileName.split("/").pop()?.split("\\").pop() ?? "book-image";
   const normalized = cleanName.replaceAll(" ", "-").replace(invalidFileChars, "");
   return normalized || `book-image-${Date.now()}`;
+}
+
+function parseImageUrls(value: string) {
+  return value
+    .split(/[\n,]/)
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
 }
 
 export default function AdminDashboard() {
@@ -29,6 +37,7 @@ export default function AdminDashboard() {
 
   const [books, setBooks] = useState<InventoryBook[]>([]);
   const [affiliateProducts, setAffiliateProducts] = useState<AffiliateProduct[]>([]);
+  const [invoices, setInvoices] = useState<InvoiceRecord[]>([]);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
   const [isSubmittingBook, setIsSubmittingBook] = useState(false);
   const [isSubmittingAffiliate, setIsSubmittingAffiliate] = useState(false);
@@ -37,31 +46,39 @@ export default function AdminDashboard() {
   const [bookAuthor, setBookAuthor] = useState("");
   const [bookCondition, setBookCondition] = useState("Used - Good");
   const [bookPrice, setBookPrice] = useState("");
-  const [bookImage, setBookImage] = useState<File | null>(null);
+  const [bookImages, setBookImages] = useState<FileList | null>(null);
+  const [bookExternalImages, setBookExternalImages] = useState("");
   const [bookInStock, setBookInStock] = useState(true);
 
   const [affiliateTitle, setAffiliateTitle] = useState("");
   const [affiliateUrl, setAffiliateUrl] = useState("");
-  const [affiliateImageUrl, setAffiliateImageUrl] = useState("");
+  const [affiliateImageUrls, setAffiliateImageUrls] = useState("");
 
   const fetchDashboardData = useCallback(async () => {
     if (!supabase) {
       return;
     }
 
-    const [{ data: bookRows, error: booksError }, { data: affiliateRows, error: affiliateError }] =
-      await Promise.all([
-        supabase
-          .from("books")
-          .select("id,title,author,price,condition,image_url,in_stock")
-          .order("id", { ascending: false }),
-        supabase
-          .from("affiliate_products")
-          .select("id,title,affiliate_url,image_url")
-          .order("id", { ascending: false }),
-      ]);
+    const [
+      { data: bookRows, error: booksError },
+      { data: affiliateRows, error: affiliateError },
+      { data: invoiceRows, error: invoiceError },
+    ] = await Promise.all([
+      supabase
+        .from("books")
+        .select("id,title,author,price,condition,image_url,image_urls,in_stock")
+        .order("id", { ascending: false }),
+      supabase
+        .from("affiliate_products")
+        .select("id,title,affiliate_url,image_url,image_urls")
+        .order("id", { ascending: false }),
+      supabase
+        .from("invoices")
+        .select("id,customer_name,customer_phone,customer_address,total_amount,status,items,created_at")
+        .order("id", { ascending: false }),
+    ]);
 
-    if (booksError || affiliateError) {
+    if (booksError || affiliateError || invoiceError) {
       setDashboardError("Unable to load admin data. Verify RLS policies and login access.");
       return;
     }
@@ -69,6 +86,7 @@ export default function AdminDashboard() {
     setDashboardError(null);
     setBooks((bookRows as InventoryBook[] | null) ?? []);
     setAffiliateProducts((affiliateRows as AffiliateProduct[] | null) ?? []);
+    setInvoices((invoiceRows as InvoiceRecord[] | null) ?? []);
   }, [supabase]);
 
   useEffect(() => {
@@ -140,6 +158,7 @@ export default function AdminDashboard() {
     setSession(null);
     setBooks([]);
     setAffiliateProducts([]);
+    setInvoices([]);
   };
 
   const handleBookSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -159,35 +178,40 @@ export default function AdminDashboard() {
     setIsSubmittingBook(true);
 
     try {
-      let uploadedImageUrl = placeholderImage;
+      const uploadedImageUrls: string[] = [];
 
-      if (bookImage) {
-        const safeFileName = sanitizeFileName(bookImage.name);
-        const filePath = `${session.user.id}/${Date.now()}-${safeFileName}`;
-        const { error: uploadError } = await supabase.storage
-          .from("book-images")
-          .upload(filePath, bookImage, {
-            cacheControl: "3600",
-            upsert: false,
-          });
+      if (bookImages && bookImages.length > 0) {
+        const fileUploadPromises = Array.from(bookImages).map(async (bookImage) => {
+          const safeFileName = sanitizeFileName(bookImage.name);
+          const filePath = `${session.user.id}/${Date.now()}-${safeFileName}`;
+          const { error: uploadError } = await supabase.storage
+            .from("book-images")
+            .upload(filePath, bookImage, {
+              cacheControl: "3600",
+              upsert: false,
+            });
 
-        if (uploadError) {
-          throw new Error(uploadError.message);
-        }
+          if (uploadError) {
+            throw new Error(uploadError.message);
+          }
 
-        const { data: publicData } = supabase.storage
-          .from("book-images")
-          .getPublicUrl(filePath);
-
-        uploadedImageUrl = publicData.publicUrl;
+          const { data: publicData } = supabase.storage.from("book-images").getPublicUrl(filePath);
+          return publicData.publicUrl;
+        });
+        uploadedImageUrls.push(...(await Promise.all(fileUploadPromises)));
       }
+
+      const manualUrls = parseImageUrls(bookExternalImages);
+      const imageUrls = [...uploadedImageUrls, ...manualUrls];
+      const primaryImageUrl = imageUrls[0] ?? placeholderImage;
 
       const { error } = await supabase.from("books").insert({
         title: bookTitle,
         author: bookAuthor,
         condition: bookCondition,
         price: parsedPrice,
-        image_url: uploadedImageUrl,
+        image_url: primaryImageUrl,
+        image_urls: imageUrls.length > 0 ? imageUrls : [placeholderImage],
         in_stock: bookInStock,
       });
 
@@ -199,7 +223,8 @@ export default function AdminDashboard() {
       setBookAuthor("");
       setBookCondition("Used - Good");
       setBookPrice("");
-      setBookImage(null);
+      setBookImages(null);
+      setBookExternalImages("");
       setBookInStock(true);
 
       await fetchDashboardData();
@@ -228,6 +253,18 @@ export default function AdminDashboard() {
     await fetchDashboardData();
   };
 
+  const handleDeleteBook = async (bookId: number) => {
+    if (!supabase) {
+      return;
+    }
+    const { error } = await supabase.from("books").delete().eq("id", bookId);
+    if (error) {
+      setDashboardError(error.message);
+      return;
+    }
+    await fetchDashboardData();
+  };
+
   const handleAffiliateSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -239,10 +276,14 @@ export default function AdminDashboard() {
     setIsSubmittingAffiliate(true);
 
     try {
+      const imageUrls = parseImageUrls(affiliateImageUrls);
+      const primaryImageUrl = imageUrls[0] ?? placeholderImage;
+
       const { error } = await supabase.from("affiliate_products").insert({
         title: affiliateTitle,
         affiliate_url: affiliateUrl,
-        image_url: affiliateImageUrl || placeholderImage,
+        image_url: primaryImageUrl,
+        image_urls: imageUrls.length > 0 ? imageUrls : [placeholderImage],
       });
 
       if (error) {
@@ -251,7 +292,7 @@ export default function AdminDashboard() {
 
       setAffiliateTitle("");
       setAffiliateUrl("");
-      setAffiliateImageUrl("");
+      setAffiliateImageUrls("");
       await fetchDashboardData();
     } catch (error) {
       setDashboardError(
@@ -262,6 +303,33 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleDeleteAffiliate = async (productId: number) => {
+    if (!supabase) {
+      return;
+    }
+    const { error } = await supabase.from("affiliate_products").delete().eq("id", productId);
+    if (error) {
+      setDashboardError(error.message);
+      return;
+    }
+    await fetchDashboardData();
+  };
+
+  const handleUpdateInvoiceStatus = async (
+    invoiceId: number,
+    status: InvoiceRecord["status"]
+  ) => {
+    if (!supabase) {
+      return;
+    }
+    const { error } = await supabase.from("invoices").update({ status }).eq("id", invoiceId);
+    if (error) {
+      setDashboardError(error.message);
+      return;
+    }
+    await fetchDashboardData();
+  };
+
   if (authLoading) {
     return <main className="mx-auto max-w-5xl px-4 py-8">Loading admin dashboard…</main>;
   }
@@ -270,9 +338,7 @@ export default function AdminDashboard() {
     return (
       <main className="mx-auto max-w-md px-4 py-10">
         <h1 className="mb-2 text-2xl font-semibold text-zinc-900">Admin Login</h1>
-        <p className="mb-6 text-sm text-zinc-600">
-          Sign in with your Supabase admin account.
-        </p>
+        <p className="mb-6 text-sm text-zinc-600">Sign in with your Supabase admin account.</p>
         <form onSubmit={handleLogin} className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-6">
           <label className="block text-sm font-medium text-zinc-700">
             Email
@@ -319,7 +385,7 @@ export default function AdminDashboard() {
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 sm:text-3xl">
             Admin Dashboard
           </h1>
-          <p className="mt-1 text-sm text-zinc-600">Manage inventory and affiliate products.</p>
+          <p className="mt-1 text-sm text-zinc-600">Manage inventory, products, and orders.</p>
         </div>
         <button
           type="button"
@@ -333,10 +399,7 @@ export default function AdminDashboard() {
       {dashboardError ? <p className="mb-4 text-sm text-red-600">{dashboardError}</p> : null}
 
       <section className="mb-8 grid gap-6 lg:grid-cols-2">
-        <form
-          onSubmit={handleBookSubmit}
-          className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-6"
-        >
+        <form onSubmit={handleBookSubmit} className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-6">
           <h2 className="text-lg font-semibold text-zinc-900">Add book inventory</h2>
           <label className="block text-sm font-medium text-zinc-700">
             Title
@@ -377,12 +440,22 @@ export default function AdminDashboard() {
             />
           </label>
           <label className="block text-sm font-medium text-zinc-700">
-            Book image
+            Upload multiple images
             <input
               type="file"
               accept="image/*"
-              onChange={(event) => setBookImage(event.target.files?.[0] ?? null)}
+              multiple
+              onChange={(event) => setBookImages(event.target.files)}
               className="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2"
+            />
+          </label>
+          <label className="block text-sm font-medium text-zinc-700">
+            External image URLs (comma or newline separated)
+            <textarea
+              value={bookExternalImages}
+              onChange={(event) => setBookExternalImages(event.target.value)}
+              className="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2"
+              rows={3}
             />
           </label>
           <label className="flex items-center gap-2 text-sm font-medium text-zinc-700">
@@ -407,9 +480,6 @@ export default function AdminDashboard() {
           className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-6"
         >
           <h2 className="text-lg font-semibold text-zinc-900">Add affiliate product</h2>
-          <p className="text-sm text-zinc-600">
-            Use direct image URLs when scraping is blocked.
-          </p>
           <label className="block text-sm font-medium text-zinc-700">
             Product title
             <input
@@ -430,12 +500,12 @@ export default function AdminDashboard() {
             />
           </label>
           <label className="block text-sm font-medium text-zinc-700">
-            Direct image URL
-            <input
-              type="url"
-              value={affiliateImageUrl}
-              onChange={(event) => setAffiliateImageUrl(event.target.value)}
+            Multiple image URLs (comma or newline separated)
+            <textarea
+              value={affiliateImageUrls}
+              onChange={(event) => setAffiliateImageUrls(event.target.value)}
               className="mt-1 w-full rounded-xl border border-zinc-300 px-3 py-2"
+              rows={3}
             />
           </label>
           <button
@@ -466,12 +536,56 @@ export default function AdminDashboard() {
                   </p>
                   <p className="text-xs text-zinc-500">{book.in_stock ? "In stock" : "Out of stock"}</p>
                 </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleToggleStock(book)}
+                    className="rounded-lg border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-700"
+                  >
+                    Mark as {book.in_stock ? "out of stock" : "in stock"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteBook(book.id)}
+                    className="rounded-lg border border-red-300 px-3 py-1.5 text-xs font-medium text-red-700"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </article>
+            ))
+          )}
+        </div>
+      </section>
+
+      <section className="mb-8 rounded-2xl border border-zinc-200 bg-white p-6">
+        <h2 className="mb-4 text-lg font-semibold text-zinc-900">Affiliate products</h2>
+        <div className="space-y-3">
+          {affiliateProducts.length === 0 ? (
+            <p className="text-sm text-zinc-600">No affiliate products yet.</p>
+          ) : (
+            affiliateProducts.map((product) => (
+              <article
+                key={product.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200 p-3"
+              >
+                <div>
+                  <p className="font-medium text-zinc-900">{product.title}</p>
+                  <a
+                    href={product.affiliate_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-blue-700 underline"
+                  >
+                    {product.affiliate_url}
+                  </a>
+                </div>
                 <button
                   type="button"
-                  onClick={() => handleToggleStock(book)}
-                  className="rounded-lg border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-700"
+                  onClick={() => handleDeleteAffiliate(product.id)}
+                  className="rounded-lg border border-red-300 px-3 py-1.5 text-xs font-medium text-red-700"
                 >
-                  Mark as {book.in_stock ? "out of stock" : "in stock"}
+                  Delete
                 </button>
               </article>
             ))
@@ -480,22 +594,50 @@ export default function AdminDashboard() {
       </section>
 
       <section className="rounded-2xl border border-zinc-200 bg-white p-6">
-        <h2 className="mb-4 text-lg font-semibold text-zinc-900">Affiliate products</h2>
-        <div className="space-y-3">
-          {affiliateProducts.length === 0 ? (
-            <p className="text-sm text-zinc-600">No affiliate products yet.</p>
+        <h2 className="mb-4 text-lg font-semibold text-zinc-900">Incoming invoices</h2>
+        <div className="space-y-4">
+          {invoices.length === 0 ? (
+            <p className="text-sm text-zinc-600">No invoices yet.</p>
           ) : (
-            affiliateProducts.map((product) => (
-              <article key={product.id} className="rounded-xl border border-zinc-200 p-3">
-                <p className="font-medium text-zinc-900">{product.title}</p>
-                <a
-                  href={product.affiliate_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-blue-700 underline"
-                >
-                  {product.affiliate_url}
-                </a>
+            invoices.map((invoice) => (
+              <article key={invoice.id} className="rounded-xl border border-zinc-200 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="font-medium text-zinc-900">Invoice #{invoice.id}</p>
+                    <p className="text-sm text-zinc-600">
+                      {invoice.customer_name} • {invoice.customer_phone}
+                    </p>
+                    <p className="text-sm text-zinc-600">{invoice.customer_address}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-md bg-zinc-100 px-2 py-1 text-xs uppercase text-zinc-700">
+                      {invoice.status}
+                    </span>
+                    <select
+                      value={invoice.status}
+                      onChange={(event) =>
+                        handleUpdateInvoiceStatus(
+                          invoice.id,
+                          event.target.value as InvoiceRecord["status"]
+                        )
+                      }
+                      className="rounded-md border border-zinc-300 px-2 py-1 text-xs"
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="processing">Processing</option>
+                      <option value="delivered">Delivered</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="mt-3 space-y-1">
+                  {(invoice.items ?? []).map((item, index) => (
+                    <p key={`${invoice.id}-${index}`} className="text-sm text-zinc-700">
+                      {item.title} × {item.quantity} (₹{item.unit_price})
+                    </p>
+                  ))}
+                </div>
+                <p className="mt-2 text-sm font-semibold text-zinc-900">Total: ₹{invoice.total_amount}</p>
               </article>
             ))
           )}

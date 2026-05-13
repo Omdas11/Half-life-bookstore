@@ -12,9 +12,12 @@ Minimalist, mobile-first bookstore built with Next.js App Router.
 ## Features
 
 - Public marketplace page for used books and affiliate products
+- Shared header/footer with mobile hamburger navigation
+- Shopping cart with multi-item checkout and invoice creation
 - Protected `/admin` dashboard with Supabase email/password sign-in
-- Book inventory management with stock toggle and Supabase Storage image uploads
-- Affiliate product management with title, affiliate URL, and direct image URL input
+- Book inventory management with stock toggle/delete and multi-image uploads
+- Affiliate product management with title, affiliate URL, multi-image URLs, and delete
+- Invoice queue in admin for delivery status management
 - Local Tiempos typography via `next/font/local`
 
 ## Setup
