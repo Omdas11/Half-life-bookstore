@@ -33,6 +33,7 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
       ),
     [books, searchQuery]
   );
+  const hasListings = books.length > 0;
 
   const cartTotal = useMemo(
     () =>
@@ -137,93 +138,106 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
         />
       </label>
 
-      <section className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {filteredBooks.map((book) => {
-          const isUsed = !book.is_affiliate;
-          const imageIndex = selectedImageIndex[book.id] ?? 0;
-          const imageSrc =
-            book.image_urls[imageIndex] && !brokenImageUrls.includes(book.image_urls[imageIndex])
-              ? book.image_urls[imageIndex]
-              : "/book-placeholder.svg";
+      {hasListings ? (
+        <section className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredBooks.map((book) => {
+            const isUsed = !book.is_affiliate;
+            const imageIndex = selectedImageIndex[book.id] ?? 0;
+            const imageSrc =
+              book.image_urls[imageIndex] && !brokenImageUrls.includes(book.image_urls[imageIndex])
+                ? book.image_urls[imageIndex]
+                : "/book-placeholder.svg";
 
-          return (
-            <article
-              key={book.id}
-              className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm"
-            >
-              <div className="flex h-52 items-center justify-center bg-zinc-100 p-3">
-                <Image
-                  src={imageSrc}
-                  alt={book.title}
-                  width={400}
-                  height={200}
-                  unoptimized
-                  className="h-full w-full object-contain"
-                  onError={() =>
-                    setBrokenImageUrls((current) =>
-                      current.includes(imageSrc) ? current : [...current, imageSrc]
-                    )
-                  }
-                />
-              </div>
-              <div className="space-y-2 p-4">
-                <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-                  {isUsed ? "Used" : "Affiliate"}
-                </p>
-                <h2 className="line-clamp-2 text-lg font-semibold text-zinc-900">{book.title}</h2>
-                <p className="text-sm text-zinc-600">{book.author}</p>
-                <p className="text-sm text-zinc-700">Condition: {book.condition}</p>
-                {book.image_urls.length > 1 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {book.image_urls.map((imageUrl, index) => (
-                      <button
-                        key={`${book.id}-${imageUrl}`}
-                        type="button"
-                        onClick={() =>
-                          setSelectedImageIndex((current) => ({
-                            ...current,
-                            [book.id]: index,
-                          }))
-                        }
-                        className={`rounded-md border px-2 py-1 text-xs ${
-                          imageIndex === index
-                            ? "border-zinc-900 bg-zinc-900 text-white"
-                            : "border-zinc-300 text-zinc-700"
-                        }`}
-                      >
-                        Image {index + 1}
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
-                {book.price !== null ? (
-                  <p className="text-base font-semibold text-zinc-900">₹{book.price}</p>
-                ) : (
-                  <p className="text-base font-semibold text-zinc-900">Visit partner store</p>
-                )}
-                {isUsed ? (
-                  <button
-                    type="button"
-                    onClick={() => handleAddToCart(book)}
-                    className="inline-flex w-full items-center justify-center rounded-xl bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-700"
-                  >
-                    Add to Cart
-                  </button>
-                ) : (
-                  <a
-                    href={book.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex w-full items-center justify-center rounded-xl bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-700"
-                  >
-                    Buy from Affiliate
-                  </a>
-                )}
-              </div>
-            </article>
-          );
-        })}
-      </section>
+            return (
+              <article
+                key={book.id}
+                className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm"
+              >
+                <div className="flex h-52 items-center justify-center bg-zinc-100 p-3">
+                  <Image
+                    src={imageSrc}
+                    alt={book.title}
+                    width={400}
+                    height={200}
+                    unoptimized
+                    className="h-full w-full object-contain"
+                    onError={() =>
+                      setBrokenImageUrls((current) =>
+                        current.includes(imageSrc) ? current : [...current, imageSrc]
+                      )
+                    }
+                  />
+                </div>
+                <div className="space-y-2 p-4">
+                  <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+                    {isUsed ? "Used" : "Affiliate"}
+                  </p>
+                  <h2 className="line-clamp-2 text-lg font-semibold text-zinc-900">
+                    {book.title}
+                  </h2>
+                  <p className="text-sm text-zinc-600">{book.author}</p>
+                  <p className="text-sm text-zinc-700">Condition: {book.condition}</p>
+                  {book.image_urls.length > 1 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {book.image_urls.map((imageUrl, index) => (
+                        <button
+                          key={`${book.id}-${imageUrl}`}
+                          type="button"
+                          onClick={() =>
+                            setSelectedImageIndex((current) => ({
+                              ...current,
+                              [book.id]: index,
+                            }))
+                          }
+                          className={`rounded-md border px-2 py-1 text-xs ${
+                            imageIndex === index
+                              ? "border-zinc-900 bg-zinc-900 text-white"
+                              : "border-zinc-300 text-zinc-700"
+                          }`}
+                        >
+                          Image {index + 1}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                  {book.price !== null ? (
+                    <p className="text-base font-semibold text-zinc-900">₹{book.price}</p>
+                  ) : (
+                    <p className="text-base font-semibold text-zinc-900">Visit partner store</p>
+                  )}
+                  {isUsed ? (
+                    <button
+                      type="button"
+                      onClick={() => handleAddToCart(book)}
+                      className="inline-flex w-full items-center justify-center rounded-xl bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-700"
+                    >
+                      Add to Cart
+                    </button>
+                  ) : (
+                    <a
+                      href={book.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex w-full items-center justify-center rounded-xl bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-700"
+                    >
+                      Buy from Affiliate
+                    </a>
+                  )}
+                </div>
+              </article>
+            );
+          })}
+        </section>
+      ) : (
+        <section className="mb-8 rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 px-6 py-10 text-center">
+          <h2 className="text-lg font-semibold text-zinc-900">
+            No books are currently available.
+          </h2>
+          <p className="mt-2 text-sm text-zinc-600">
+            Check back soon for fresh listings and new partner offers.
+          </p>
+        </section>
+      )}
 
       <section id="cart" className="rounded-2xl border border-zinc-200 bg-white p-6">
         <h2 className="text-xl font-semibold text-zinc-900">Shopping Cart</h2>
@@ -302,7 +316,7 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
         {checkoutMessage ? <p className="mt-3 text-sm text-zinc-700">{checkoutMessage}</p> : null}
       </section>
 
-      {filteredBooks.length === 0 ? (
+      {hasListings && filteredBooks.length === 0 ? (
         <p className="mt-6 text-center text-sm text-zinc-500">
           No books found for this title.
         </p>
