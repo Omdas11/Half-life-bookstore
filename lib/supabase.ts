@@ -88,14 +88,16 @@ export async function getBooks(): Promise<Book[]> {
     { data: affiliateData, error: affiliateError },
   ] = await Promise.all([
     supabase
-      .from<InventoryBook>("books")
+      .from("books")
       .select("id,title,author,price,condition,image_url,image_urls,in_stock")
       .eq("in_stock", true)
-      .order("id", { ascending: true }),
+      .order("id", { ascending: true })
+      .returns<InventoryBook[]>(),
     supabase
-      .from<AffiliateProduct>("affiliate_products")
+      .from("affiliate_products")
       .select("id,title,affiliate_url,image_url,image_urls")
-      .order("id", { ascending: true }),
+      .order("id", { ascending: true })
+      .returns<AffiliateProduct[]>(),
   ]);
 
   if (inventoryError || affiliateError) {
