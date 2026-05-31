@@ -218,9 +218,9 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
                     <p className="font-label text-[0.65rem] text-[var(--color-on-surface-variant)]">
                       {isUsed ? "Used" : "Affiliate"}
                     </p>
-                    <h3 className="line-clamp-2 text-lg font-semibold text-[var(--color-on-surface)]">
+                    <p className="line-clamp-2 text-lg font-semibold text-[var(--color-on-surface)]">
                       {book.title}
-                    </h3>
+                    </p>
                     <p className="text-sm text-[var(--color-on-surface-variant)]">{book.author}</p>
                     <p className="text-sm text-[var(--color-on-surface-variant)]">
                       Condition: {book.condition}
