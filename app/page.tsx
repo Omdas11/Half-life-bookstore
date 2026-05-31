@@ -4,11 +4,17 @@ import BooksMarketplace from "@/app/components/books-marketplace";
 import { getBooks } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
+const googleSiteVerificationToken =
+  process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim();
+const googleSiteVerificationMeta = googleSiteVerificationToken
+  ? { "google-site-verification": googleSiteVerificationToken }
+  : undefined;
 
 export const metadata: Metadata = {
   title: "Archive Marketplace",
   description:
     "Browse used academic books, verified partner titles, and curated bundles from Half-life Bookstore.",
+  other: googleSiteVerificationMeta,
   keywords: [
     "used books",
     "academic bookstore",
