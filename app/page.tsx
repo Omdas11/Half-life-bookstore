@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   title: "Archive Marketplace",
   description:
     "Browse used academic books, verified partner titles, and curated bundles from Half-life Bookstore.",
-  ...(googleSiteVerificationMeta ? { other: googleSiteVerificationMeta } : {}),
+  other: googleSiteVerificationMeta,
   keywords: [
     "used books",
     "academic bookstore",
