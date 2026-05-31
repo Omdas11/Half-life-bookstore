@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description:
     "Browse used academic books, verified partner titles, and curated bundles from Half-life Bookstore.",
   other: {
-    "google-site-verification": "google28b4ac3241b608eb.html",
+    "google-site-verification": "28b4ac3241b608eb",
   },
   keywords: [
     "used books",
