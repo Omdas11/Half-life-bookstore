@@ -250,7 +250,7 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
                     ) : null}
                     {book.price !== null ? (
                       <p className="text-base font-semibold text-[var(--color-on-surface)]">
-                        ₹{book.price}
+                        <span className="font-editorial">₹{book.price}</span>
                       </p>
                     ) : (
                       <p className="text-base font-semibold text-[var(--color-on-surface)]">
@@ -317,7 +317,7 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
                 <div>
                   <p className="font-medium text-[var(--color-on-surface)]">{item.book.title}</p>
                   <p className="text-sm text-[var(--color-on-surface-variant)]">
-                    ₹{item.book.price} × {item.quantity}
+                    <span className="font-editorial">₹{item.book.price}</span> × {item.quantity}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -342,7 +342,7 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
           )}
         </div>
         <p className="mt-4 text-base font-semibold text-[var(--color-on-surface)]">
-          Total: ₹{formattedCartTotal}
+          Total: <span className="font-editorial">₹{formattedCartTotal}</span>
         </p>
         <form onSubmit={handleCheckout} className="mt-4 space-y-3">
           <input

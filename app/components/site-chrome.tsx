@@ -41,8 +41,8 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
                 href={link.href}
                 className={`font-label border-b-2 pb-1 text-[0.65rem] ${
                   pathname === link.href
-                    ? "border-[var(--color-primary)] text-[var(--color-on-surface)]"
-                    : "border-transparent text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)]"
+                    ? "border-[var(--color-primary)] text-[var(--color-primary-strong)]"
+                    : "border-transparent text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary-strong)]"
                 }`}
               >
                 {link.label}
@@ -57,10 +57,10 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
                 key={link.href}
                 href={link.href}
                 onClick={() => setMenuOpen(false)}
-                className={`mb-2 block rounded-md px-3 py-2 text-[0.75rem] font-semibold uppercase tracking-[0.2em] last:mb-0 ${
+                className={`mb-2 block rounded-md border-l-2 border-transparent px-3 py-2 text-[0.75rem] font-semibold uppercase tracking-[0.2em] last:mb-0 ${
                   pathname === link.href
-                    ? "bg-[var(--color-on-surface)] text-[var(--color-on-primary)]"
-                    : "text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-low)]"
+                    ? "border-[var(--color-primary)] bg-[var(--color-surface-container-low)] text-[var(--color-primary-strong)]"
+                    : "text-[var(--color-on-surface-variant)] hover:border-[var(--color-primary)] hover:bg-[var(--color-surface-container-low)] hover:text-[var(--color-primary-strong)]"
                 }`}
               >
                 {link.label}
