@@ -31,8 +31,10 @@ const editorialFont = localFont({
   display: "swap",
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "https://half-life-bookstore.vercel.app";
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://half-life-bookstore.vercel.app"),
+  metadataBase: new URL(siteUrl),
   title: {
     default: "Half-life Bookstore | Used Academic Books",
     template: "%s | Half-life Bookstore",
@@ -53,7 +55,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    url: "https://half-life-bookstore.vercel.app",
+    url: siteUrl,
     title: "Half-life Bookstore | Used Academic Books",
     description:
       "Shop curated used academic books, build bundles, and discover partner editions in a modern research-focused bookstore.",

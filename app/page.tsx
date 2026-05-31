@@ -1,6 +1,7 @@
+import type { Metadata } from "next";
+import Script from "next/script";
 import BooksMarketplace from "@/app/components/books-marketplace";
 import { getBooks } from "@/lib/supabase";
-import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 
@@ -32,10 +33,16 @@ export default async function Home() {
       name: "Used academic books and partner titles",
     },
   };
+  const structuredDataJson = JSON.stringify(structuredData).replace(/</g, "\\u003c");
 
   return (
     <>
-      <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
+      <Script
+        id="structured-data"
+        type="application/ld+json"
+        strategy="beforeInteractive"
+        dangerouslySetInnerHTML={{ __html: structuredDataJson }}
+      />
       <BooksMarketplace books={books} />
     </>
   );
