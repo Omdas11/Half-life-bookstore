@@ -2,6 +2,8 @@
 
 :root {
   color-scheme: light;
+  --font-inter: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-jetbrains: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --color-surface: #fbf8ff;
   --color-surface-dim: #dad9e3;
   --color-surface-bright: #fbf8ff;

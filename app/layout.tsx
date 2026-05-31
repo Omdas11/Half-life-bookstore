@@ -1,22 +1,33 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Literata } from "next/font/google";
+import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/next";
 import SiteChrome from "@/app/components/site-chrome";
 import "./globals.css";
 
-const literata = Literata({
-  subsets: ["latin"],
+const literata = localFont({
+  src: [
+    {
+      path: "../font/TestTiemposText-Regular-BF66457a50cd521.otf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../font/TestTiemposText-Medium-BF66457a508489a.otf",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../font/TestTiemposText-Semibold-BF66457a4fed201.otf",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "../font/TestTiemposText-Bold-BF66457a4f03c40.otf",
+      weight: "700",
+      style: "normal",
+    },
+  ],
   variable: "--font-literata",
-  display: "swap",
-});
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains",
   display: "swap",
 });
 
@@ -66,10 +77,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`h-full antialiased ${literata.variable} ${inter.variable} ${jetbrainsMono.variable}`}
-    >
+    <html lang="en" className={`h-full antialiased ${literata.variable}`}>
       <body className="min-h-full">
         <SiteChrome>{children}</SiteChrome>
         <Analytics />
