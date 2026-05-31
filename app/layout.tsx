@@ -4,7 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import SiteChrome from "@/app/components/site-chrome";
 import "./globals.css";
 
-const literata = localFont({
+const editorialFont = localFont({
   src: [
     {
       path: "../font/TestTiemposText-Regular-BF66457a50cd521.otf",
@@ -27,7 +27,7 @@ const literata = localFont({
       style: "normal",
     },
   ],
-  variable: "--font-literata",
+  variable: "--font-editorial",
   display: "swap",
 });
 
@@ -77,7 +77,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`h-full antialiased ${literata.variable}`}>
+    <html lang="en" className={`h-full antialiased ${editorialFont.variable}`}>
       <body className="min-h-full">
         <SiteChrome>{children}</SiteChrome>
         <Analytics />

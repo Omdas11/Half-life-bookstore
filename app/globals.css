@@ -45,13 +45,13 @@ a {
   h4,
   h5,
   h6 {
-    font-family: var(--font-literata), "Literata", "Times New Roman", serif;
+    font-family: var(--font-editorial), "Literata", "Times New Roman", serif;
   }
 }
 
 @layer utilities {
   .font-editorial {
-    font-family: var(--font-literata), "Literata", "Times New Roman", serif;
+    font-family: var(--font-editorial), "Literata", "Times New Roman", serif;
   }
 
   .font-label {
