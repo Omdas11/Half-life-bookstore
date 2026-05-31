@@ -31,7 +31,8 @@ const editorialFont = localFont({
   display: "swap",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "https://half-life-bookstore.vercel.app";
+const defaultSiteUrl = "https://half-life-bookstore.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_BASE_URL ?? defaultSiteUrl;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

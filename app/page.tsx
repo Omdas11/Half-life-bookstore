@@ -33,7 +33,10 @@ export default async function Home() {
       name: "Used academic books and partner titles",
     },
   };
-  const structuredDataJson = JSON.stringify(structuredData).replace(/</g, "\\u003c");
+  const structuredDataJson = JSON.stringify(structuredData)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026");
 
   return (
     <>
