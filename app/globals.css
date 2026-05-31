@@ -2,6 +2,25 @@
 
 :root {
   color-scheme: light;
+  --font-inter: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-jetbrains: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --color-surface: #fbf8ff;
+  --color-surface-dim: #dad9e3;
+  --color-surface-bright: #fbf8ff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f4f2fd;
+  --color-surface-container: #eeedf7;
+  --color-surface-container-high: #e8e7f1;
+  --color-surface-container-highest: #e3e1ec;
+  --color-on-surface: #1a1b22;
+  --color-on-surface-variant: #584237;
+  --color-outline: #8c7164;
+  --color-outline-variant: #e0c0b1;
+  --color-primary: #f97316;
+  --color-primary-strong: #9d4300;
+  --color-on-primary: #ffffff;
+  --color-tertiary: #006398;
+  --color-on-tertiary: #ffffff;
 }
 
 * {
@@ -10,5 +29,34 @@
 
 body {
   margin: 0;
-  font-family: var(--font-tiempos), "Times New Roman", serif;
+  font-family: var(--font-inter), "Inter", system-ui, sans-serif;
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+}
+
+a {
+  color: inherit;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-editorial), "Literata", "Times New Roman", serif;
+  }
+}
+
+@layer utilities {
+  .font-editorial {
+    font-family: var(--font-editorial), "Literata", "Times New Roman", serif;
+  }
+
+  .font-label {
+    font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
 }

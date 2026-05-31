@@ -1,10 +1,10 @@
-import localFont from "next/font/local";
 import type { Metadata } from "next";
+import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/next";
 import SiteChrome from "@/app/components/site-chrome";
 import "./globals.css";
 
-const tiempos = localFont({
+const editorialFont = localFont({
   src: [
     {
       path: "../font/TestTiemposText-Regular-BF66457a50cd521.otf",
@@ -27,14 +27,51 @@ const tiempos = localFont({
       style: "normal",
     },
   ],
-  variable: "--font-tiempos",
+  variable: "--font-editorial",
   display: "swap",
 });
 
+const defaultSiteUrl = "https://half-life-bookstore.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_BASE_URL ?? defaultSiteUrl;
+
 export const metadata: Metadata = {
-  title: "Half-life Bookstore",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Half-life Bookstore | Used Academic Books",
+    template: "%s | Half-life Bookstore",
+  },
   description:
-    "A minimalist marketplace for used academic books and affiliate links.",
+    "Half-life Bookstore is a curated marketplace for used academic books, research guides, and partner titles with fast local delivery.",
+  applicationName: "Half-life Bookstore",
+  keywords: [
+    "used academic books",
+    "textbooks",
+    "research library",
+    "bookstore",
+    "affiliate books",
+    "student books",
+  ],
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    url: siteUrl,
+    title: "Half-life Bookstore | Used Academic Books",
+    description:
+      "Shop curated used academic books, build bundles, and discover partner editions in a modern research-focused bookstore.",
+    siteName: "Half-life Bookstore",
+  },
+  twitter: {
+    card: "summary",
+    title: "Half-life Bookstore | Used Academic Books",
+    description:
+      "Browse used academic books, curated bundles, and partner editions from Half-life Bookstore.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
@@ -43,7 +80,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`h-full antialiased ${tiempos.variable}`}>
+    <html lang="en" className={`h-full antialiased ${editorialFont.variable}`}>
       <body className="min-h-full">
         <SiteChrome>{children}</SiteChrome>
         <Analytics />
