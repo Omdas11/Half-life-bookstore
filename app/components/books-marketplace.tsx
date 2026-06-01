@@ -192,7 +192,25 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
                   className="relative overflow-hidden rounded-lg border border-[var(--color-outline-variant)] bg-[var(--color-surface-container-lowest)]"
                 >
                   <span className="absolute left-0 top-0 h-full w-1 bg-[var(--color-primary)]" aria-hidden />
-                  <div className="h-52 overflow-x-auto overflow-y-hidden bg-[var(--color-surface-container)] scroll-smooth">
+                  <div
+                    className="h-52 overflow-x-auto overflow-y-hidden bg-[var(--color-surface-container)] scroll-smooth"
+                    role="region"
+                    aria-label={`${book.title} images`}
+                    tabIndex={0}
+                    onKeyDown={(event) => {
+                      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
+                        return;
+                      }
+                      event.preventDefault();
+                      event.currentTarget.scrollBy({
+                        left:
+                          event.key === "ArrowRight"
+                            ? event.currentTarget.clientWidth
+                            : -event.currentTarget.clientWidth,
+                        behavior: "smooth",
+                      });
+                    }}
+                  >
                     <div className="flex h-full w-full snap-x snap-mandatory">
                       {book.image_urls.map((imageUrl, index) => {
                         const displayUrl = brokenImageUrls.includes(imageUrl)
