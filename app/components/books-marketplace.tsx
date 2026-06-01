@@ -218,12 +218,12 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
                           : imageUrl;
                         return (
                           <div
-                            key={`${book.id}-${imageUrl}-${index}`}
+                            key={`${book.id}-${index}`}
                             className="relative h-full w-full flex-shrink-0 snap-center p-3"
                           >
                             <Image
                               src={displayUrl}
-                              alt={`${book.title} image ${index + 1}`}
+                              alt={`${book.title} image ${index + 1} of ${book.image_urls.length}`}
                               width={400}
                               height={200}
                               unoptimized
