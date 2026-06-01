@@ -192,55 +192,68 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
                   className="relative overflow-hidden rounded-lg border border-[var(--color-outline-variant)] bg-[var(--color-surface-container-lowest)]"
                 >
                   <span className="absolute left-0 top-0 h-full w-1 bg-[var(--color-primary)]" aria-hidden />
-                  <div
-                    className="h-52 overflow-x-auto overflow-y-hidden bg-[var(--color-surface-container)] scroll-smooth"
-                    role="region"
-                    aria-label={`${book.title} images`}
-                    tabIndex={0}
-                    onKeyDown={(event) => {
-                      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
-                        return;
-                      }
-                      event.preventDefault();
-                      event.currentTarget.scrollBy({
-                        left:
-                          event.key === "ArrowRight"
-                            ? event.currentTarget.clientWidth
-                            : -event.currentTarget.clientWidth,
-                        behavior: "smooth",
-                      });
-                    }}
-                  >
-                    <div className="flex h-full w-full snap-x snap-mandatory">
-                      {book.image_urls.map((imageUrl, index) => {
-                        const displayUrl = brokenImageUrls.includes(imageUrl)
-                          ? "/book-placeholder.svg"
-                          : imageUrl;
-                        return (
-                          <div
-                            key={`${book.id}-${index}`}
-                            className="relative h-full w-full flex-shrink-0 snap-center p-3"
-                          >
-                            <Image
-                              src={displayUrl}
-                              alt={`${book.title} image ${index + 1} of ${book.image_urls.length}`}
-                              width={400}
-                              height={200}
-                              unoptimized
-                              className="h-full w-full object-contain"
-                              onError={() => {
-                                if (displayUrl === "/book-placeholder.svg") {
-                                  return;
-                                }
-                                setBrokenImageUrls((current) =>
-                                  current.includes(imageUrl) ? current : [...current, imageUrl]
-                                );
-                              }}
-                            />
-                          </div>
-                        );
-                      })}
+                  <div className="relative h-52 bg-[var(--color-surface-container)]">
+                    <div
+                      className="h-full overflow-x-auto overflow-y-hidden scroll-smooth"
+                      role="region"
+                      aria-label={`Image carousel for ${book.title}`}
+                      tabIndex={0}
+                      onKeyDown={(event) => {
+                        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
+                          return;
+                        }
+                        event.preventDefault();
+                        event.currentTarget.scrollBy({
+                          left:
+                            event.key === "ArrowRight"
+                              ? event.currentTarget.clientWidth
+                              : -event.currentTarget.clientWidth,
+                          behavior: "smooth",
+                        });
+                      }}
+                    >
+                      <div className="flex h-full w-full snap-x snap-mandatory">
+                        {book.image_urls.map((imageUrl, index) => {
+                          const displayUrl = brokenImageUrls.includes(imageUrl)
+                            ? "/book-placeholder.svg"
+                            : imageUrl;
+                          return (
+                            <div
+                              key={`${book.id}-${index}`}
+                              className="relative h-full w-full flex-shrink-0 snap-center p-3"
+                            >
+                              <Image
+                                src={displayUrl}
+                                alt={`${book.title} image ${index + 1} of ${book.image_urls.length}`}
+                                width={400}
+                                height={200}
+                                unoptimized
+                                className="h-full w-full object-contain"
+                                onError={() => {
+                                  if (displayUrl === "/book-placeholder.svg") {
+                                    return;
+                                  }
+                                  setBrokenImageUrls((current) =>
+                                    current.includes(imageUrl) ? current : [...current, imageUrl]
+                                  );
+                                }}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
+                    {book.image_urls.length > 1 ? (
+                      <div className="pointer-events-none absolute bottom-2 right-3 flex items-center gap-1">
+                        {book.image_urls.map((_, index) => (
+                          <span
+                            key={`${book.id}-dot-${index}`}
+                            className="h-1.5 w-1.5 rounded-full bg-[var(--color-on-surface)] opacity-40"
+                            aria-hidden
+                          />
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
                   <div className="space-y-3 p-5">
                     <p className="font-label text-[0.65rem] text-[var(--color-on-surface-variant)]">
