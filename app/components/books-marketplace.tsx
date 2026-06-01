@@ -18,6 +18,7 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [searchQuery, setSearchQuery] = useState("");
   const [brokenImageUrls, setBrokenImageUrls] = useState<string[]>([]);
+  const [activeImageIndex, setActiveImageIndex] = useState<Record<string, number>>({});
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -186,6 +187,7 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filteredBooks.map((book) => {
               const isUsed = !book.is_affiliate;
+              const currentImageIndex = activeImageIndex[book.id] ?? 0;
               return (
                 <article
                   key={book.id}
@@ -196,7 +198,7 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
                     <div
                       className="h-full overflow-x-auto overflow-y-hidden scroll-smooth"
                       role="region"
-                      aria-label={`Image carousel for ${book.title}`}
+                      aria-label={`Image carousel for ${book.title}. Use left and right arrow keys to navigate. Press Tab to move to the next section.`}
                       tabIndex={0}
                       onKeyDown={(event) => {
                         if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
@@ -210,6 +212,16 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
                               : -event.currentTarget.clientWidth,
                           behavior: "smooth",
                         });
+                      }}
+                      onScroll={(event) => {
+                        const { scrollLeft, clientWidth } = event.currentTarget;
+                        if (clientWidth === 0) {
+                          return;
+                        }
+                        const nextIndex = Math.round(scrollLeft / clientWidth);
+                        setActiveImageIndex((current) =>
+                          current[book.id] === nextIndex ? current : { ...current, [book.id]: nextIndex }
+                        );
                       }}
                     >
                       <div className="flex h-full w-full snap-x snap-mandatory">
@@ -248,7 +260,9 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
                         {book.image_urls.map((_, index) => (
                           <span
                             key={`${book.id}-dot-${index}`}
-                            className="h-1.5 w-1.5 rounded-full bg-[var(--color-on-surface)] opacity-40"
+                            className={`h-1.5 w-1.5 rounded-full bg-[var(--color-on-surface)] ${
+                              currentImageIndex === index ? "opacity-80" : "opacity-30"
+                            }`}
                             aria-hidden
                           />
                         ))}
