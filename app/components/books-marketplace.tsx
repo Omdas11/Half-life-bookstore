@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { Book } from "@/lib/supabase";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 
@@ -18,8 +18,9 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [searchQuery, setSearchQuery] = useState("");
   const [brokenImageUrls, setBrokenImageUrls] = useState<string[]>([]);
-  const [selectedImageIndex, setSelectedImageIndex] = useState<Record<string, number>>({});
+  const [activeImageIndex, setActiveImageIndex] = useState<Record<string, number>>({});
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const scrollFrame = useRef<Record<string, number | null>>({});
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
@@ -41,6 +42,24 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
     [cartItems]
   );
   const formattedCartTotal = useMemo(() => cartTotal.toFixed(2), [cartTotal]);
+
+  const handleCarouselScroll = (bookId: string, target: HTMLDivElement) => {
+    const existingFrame = scrollFrame.current[bookId];
+    if (existingFrame) {
+      cancelAnimationFrame(existingFrame);
+    }
+    scrollFrame.current[bookId] = requestAnimationFrame(() => {
+      const { scrollLeft, clientWidth } = target;
+      if (clientWidth === 0) {
+        return;
+      }
+      const nextIndex = Math.round(scrollLeft / clientWidth);
+      setActiveImageIndex((current) =>
+        current[bookId] === nextIndex ? current : { ...current, [bookId]: nextIndex }
+      );
+      scrollFrame.current[bookId] = null;
+    });
+  };
 
   const handleAddToCart = (book: Book) => {
     if (book.price === null || book.is_affiliate) {
@@ -187,32 +206,86 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filteredBooks.map((book) => {
               const isUsed = !book.is_affiliate;
-              const imageIndex = selectedImageIndex[book.id] ?? 0;
-              const imageSrc =
-                book.image_urls[imageIndex] && !brokenImageUrls.includes(book.image_urls[imageIndex])
-                  ? book.image_urls[imageIndex]
-                  : "/book-placeholder.svg";
-
+              const currentImageIndex = activeImageIndex[book.id] ?? 0;
               return (
                 <article
                   key={book.id}
                   className="relative overflow-hidden rounded-lg border border-[var(--color-outline-variant)] bg-[var(--color-surface-container-lowest)]"
                 >
                   <span className="absolute left-0 top-0 h-full w-1 bg-[var(--color-primary)]" aria-hidden />
-                  <div className="flex h-52 items-center justify-center bg-[var(--color-surface-container)] p-3">
-                    <Image
-                      src={imageSrc}
-                      alt={book.title}
-                      width={400}
-                      height={200}
-                      unoptimized
-                      className="h-full w-full object-contain"
-                      onError={() =>
-                        setBrokenImageUrls((current) =>
-                          current.includes(imageSrc) ? current : [...current, imageSrc]
-                        )
-                      }
-                    />
+                  <div className="relative h-52 bg-[var(--color-surface-container)]">
+                    <div
+                      className="h-full overflow-x-auto overflow-y-hidden scroll-smooth"
+                      role="region"
+                      aria-label={`Image carousel for ${book.title}`}
+                      tabIndex={0}
+                      onKeyDown={(event) => {
+                        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
+                          return;
+                        }
+                        event.preventDefault();
+                        event.currentTarget.scrollBy({
+                          left:
+                            event.key === "ArrowRight"
+                              ? event.currentTarget.clientWidth
+                              : -event.currentTarget.clientWidth,
+                          behavior: "smooth",
+                        });
+                      }}
+                      onScroll={(event) => handleCarouselScroll(book.id, event.currentTarget)}
+                    >
+                      <div className="flex h-full w-full snap-x snap-mandatory">
+                        {book.image_urls.map((imageUrl, index) => {
+                          const displayUrl = brokenImageUrls.includes(imageUrl)
+                            ? "/book-placeholder.svg"
+                            : imageUrl;
+                          return (
+                            <div
+                              key={`${book.id}-${index}`}
+                              className="relative h-full w-full flex-shrink-0 snap-center p-3"
+                            >
+                              <Image
+                                src={displayUrl}
+                                alt={`${book.title} image ${index + 1} of ${book.image_urls.length}`}
+                                width={400}
+                                height={200}
+                                unoptimized
+                                className="h-full w-full object-contain"
+                                onError={() => {
+                                  if (displayUrl === "/book-placeholder.svg") {
+                                    return;
+                                  }
+                                  setBrokenImageUrls((current) =>
+                                    current.includes(imageUrl) ? current : [...current, imageUrl]
+                                  );
+                                }}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    {book.image_urls.length > 1 ? (
+                      <div className="pointer-events-none absolute bottom-2 left-3 right-3 flex items-center justify-between gap-2">
+                        <span className="text-[0.6rem] text-[var(--color-on-surface)] opacity-70">
+                          Swipe or use arrow keys
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <span className="sr-only" aria-live="polite">
+                            Image {currentImageIndex + 1} of {book.image_urls.length}
+                          </span>
+                          {book.image_urls.map((_, index) => (
+                            <span
+                              key={`${book.id}-dot-${index}`}
+                              className={`h-1.5 w-1.5 rounded-full bg-[var(--color-on-surface)] ${
+                                currentImageIndex === index ? "opacity-80" : "opacity-30"
+                              }`}
+                              aria-hidden
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
                   <div className="space-y-3 p-5">
                     <p className="font-label text-[0.65rem] text-[var(--color-on-surface-variant)]">
@@ -222,31 +295,10 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
                       {book.title}
                     </h3>
                     <p className="text-sm text-[var(--color-on-surface-variant)]">{book.author}</p>
-                    <p className="text-sm text-[var(--color-on-surface-variant)]">
-                      Condition: {book.condition}
-                    </p>
-                    {book.image_urls.length > 1 ? (
-                      <div className="flex flex-wrap gap-2">
-                        {book.image_urls.map((imageUrl, index) => (
-                          <button
-                            key={`${book.id}-${imageUrl}`}
-                            type="button"
-                            onClick={() =>
-                              setSelectedImageIndex((current) => ({
-                                ...current,
-                                [book.id]: index,
-                              }))
-                            }
-                            className={`rounded-md border px-2 py-1 text-[0.65rem] ${
-                              imageIndex === index
-                                ? "border-[var(--color-on-surface)] bg-[var(--color-on-surface)] text-[var(--color-on-primary)]"
-                                : "border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)]"
-                            }`}
-                          >
-                            Image {index + 1}
-                          </button>
-                        ))}
-                      </div>
+                    {isUsed ? (
+                      <p className="text-sm text-[var(--color-on-surface-variant)]">
+                        Condition: {book.condition}
+                      </p>
                     ) : null}
                     {book.price !== null ? (
                       <p className="text-base font-semibold text-[var(--color-on-surface)]">
