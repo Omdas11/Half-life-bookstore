@@ -18,7 +18,6 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [searchQuery, setSearchQuery] = useState("");
   const [brokenImageUrls, setBrokenImageUrls] = useState<string[]>([]);
-  const [selectedImageIndex, setSelectedImageIndex] = useState<Record<string, number>>({});
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -187,32 +186,43 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filteredBooks.map((book) => {
               const isUsed = !book.is_affiliate;
-              const imageIndex = selectedImageIndex[book.id] ?? 0;
-              const imageSrc =
-                book.image_urls[imageIndex] && !brokenImageUrls.includes(book.image_urls[imageIndex])
-                  ? book.image_urls[imageIndex]
-                  : "/book-placeholder.svg";
-
               return (
                 <article
                   key={book.id}
                   className="relative overflow-hidden rounded-lg border border-[var(--color-outline-variant)] bg-[var(--color-surface-container-lowest)]"
                 >
                   <span className="absolute left-0 top-0 h-full w-1 bg-[var(--color-primary)]" aria-hidden />
-                  <div className="flex h-52 items-center justify-center bg-[var(--color-surface-container)] p-3">
-                    <Image
-                      src={imageSrc}
-                      alt={book.title}
-                      width={400}
-                      height={200}
-                      unoptimized
-                      className="h-full w-full object-contain"
-                      onError={() =>
-                        setBrokenImageUrls((current) =>
-                          current.includes(imageSrc) ? current : [...current, imageSrc]
-                        )
-                      }
-                    />
+                  <div className="h-52 overflow-x-auto overflow-y-hidden bg-[var(--color-surface-container)] scroll-smooth">
+                    <div className="flex h-full w-full snap-x snap-mandatory">
+                      {book.image_urls.map((imageUrl, index) => {
+                        const displayUrl = brokenImageUrls.includes(imageUrl)
+                          ? "/book-placeholder.svg"
+                          : imageUrl;
+                        return (
+                          <div
+                            key={`${book.id}-${imageUrl}-${index}`}
+                            className="relative h-full w-full flex-shrink-0 snap-center p-3"
+                          >
+                            <Image
+                              src={displayUrl}
+                              alt={`${book.title} image ${index + 1}`}
+                              width={400}
+                              height={200}
+                              unoptimized
+                              className="h-full w-full object-contain"
+                              onError={() => {
+                                if (displayUrl === "/book-placeholder.svg") {
+                                  return;
+                                }
+                                setBrokenImageUrls((current) =>
+                                  current.includes(imageUrl) ? current : [...current, imageUrl]
+                                );
+                              }}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                   <div className="space-y-3 p-5">
                     <p className="font-label text-[0.65rem] text-[var(--color-on-surface-variant)]">
@@ -222,31 +232,10 @@ export default function BooksMarketplace({ books }: BooksMarketplaceProps) {
                       {book.title}
                     </h3>
                     <p className="text-sm text-[var(--color-on-surface-variant)]">{book.author}</p>
-                    <p className="text-sm text-[var(--color-on-surface-variant)]">
-                      Condition: {book.condition}
-                    </p>
-                    {book.image_urls.length > 1 ? (
-                      <div className="flex flex-wrap gap-2">
-                        {book.image_urls.map((imageUrl, index) => (
-                          <button
-                            key={`${book.id}-${imageUrl}`}
-                            type="button"
-                            onClick={() =>
-                              setSelectedImageIndex((current) => ({
-                                ...current,
-                                [book.id]: index,
-                              }))
-                            }
-                            className={`rounded-md border px-2 py-1 text-[0.65rem] ${
-                              imageIndex === index
-                                ? "border-[var(--color-on-surface)] bg-[var(--color-on-surface)] text-[var(--color-on-primary)]"
-                                : "border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)]"
-                            }`}
-                          >
-                            Image {index + 1}
-                          </button>
-                        ))}
-                      </div>
+                    {isUsed ? (
+                      <p className="text-sm text-[var(--color-on-surface-variant)]">
+                        Condition: {book.condition}
+                      </p>
                     ) : null}
                     {book.price !== null ? (
                       <p className="text-base font-semibold text-[var(--color-on-surface)]">
